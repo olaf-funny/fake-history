@@ -1,30 +1,46 @@
-import git
+import random
+from datetime import datetime, timedelta
+from git import Repo
 
-git_repo = git.Repo("D:\\workspace\\fake-history", search_parent_directories=True)
-git_root = git_repo.git.rev_parse("--show-toplevel")
-print("------------------------")
-if __name__ == "__main__":
-    print(git_root)
-print("------------------------")
+REPO_PATH = "D:/workspace/fake-history"
+LOG_PATH = f"{REPO_PATH}/log.txt"
 
-## B. START: Git process
-# Auto from search (A) above
-repo = git.Repo(git_root)
-# Or manual enter repo path, note in this case, Windows is forward slash (X:/)
-#repo = git.Repo('X:/devops-roadmap-master')
+repo = Repo(REPO_PATH)
 
-## B1. Checkout
-origin = repo.remote(name='origin')
-# Note:  Branch is usually 'main' but can be 'master'
-branch_name = repo.active_branch.name
-print(f"Using branch: {branch_name}")
+start = datetime.now() - timedelta(days=10)
+total = 0
 
-## B2. Do some changes and Add -> Commit
-repo.git.add(all=True)
-print('Files Added Successfully')
-repo.index.commit('Delete bat file')
-print('Committed successfully')
+for day in range(365):
+    current = start + timedelta(days=day)
 
-## B3. Push to the repo
-origin.push()
-print('Pushed changes to origin')
+    # weekday(): Monday=0 ... Saturday=5, Sunday=6
+    if current.weekday() >= 5:
+        continue
+
+    num_commits = random.randint(0, 6)
+    if num_commits == 0:
+        continue
+
+    # Random, sorted times within the day so commits stay in chronological order
+    minutes_in_day = sorted(random.sample(range(9 * 60, 21 * 60), num_commits))
+
+    for m in minutes_in_day:
+        when = current.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(minutes=m)
+        stamp = when.strftime("%Y-%m-%dT%H:%M:%S")
+
+        with open(LOG_PATH, "a") as f:
+            f.write(f"Entry for {stamp}\n")
+
+        repo.git.add(A=True)
+        repo.index.commit(
+            f"Update {stamp}",
+            author_date=stamp,
+            commit_date=stamp,
+        )
+        total += 1
+
+print(f"Created {total} commits")
+
+# Push once at the end
+repo.remote("origin").push()
+print("Pushed to origin")
