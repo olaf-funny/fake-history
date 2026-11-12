@@ -22,7 +22,7 @@ print(f"Using branch: {branch_name}")
 ## B2. Do some changes and Add -> Commit
 repo.git.add(all=True)
 print('Files Added Successfully')
-repo.index.commit('Initial commit on new branch')
+repo.index.commit('Delete bat file')
 print('Committed successfully')
 
 ## B3. Push to the repo
